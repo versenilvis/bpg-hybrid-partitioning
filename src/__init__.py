@@ -1,9 +1,11 @@
 from __future__ import annotations
+import config
 from partition_scheme import PartitionScheme, CreatePartitionScheme
 from partitioning import FirstPartitioning, Partitioning, PartitioningUnbalancedGraph, PartitioningMinimumCutGraph
 from bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme, bpg_partition
 
 __all__ = [
+    'config',
     'PartitionScheme',
     'CreatePartitionScheme',
     'FirstPartitioning',
@@ -15,3 +17,4 @@ __all__ = [
     'BPG_PartitionScheme',
     'bpg_partition',
 ]
+
