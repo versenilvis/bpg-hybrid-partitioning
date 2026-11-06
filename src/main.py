@@ -1,30 +1,13 @@
 from __future__ import annotations
-import os
-import sys
-import subprocess
-import importlib.util
-
-# tự động kiểm tra và cài đặt thư viện cần thiết
-cache_file = os.path.join(os.path.dirname(__file__), '__pycache__', '.deps_installed')
-if not os.path.exists(cache_file):
-    required = {
-        'prettytable': 'prettytable',
-        'networkx': 'networkx',
-        'numpy': 'numpy',
-        'scipy': 'scipy',
-        'faker': 'Faker'
-    }
-    missing = [pkg for mod, pkg in required.items() if importlib.util.find_spec(mod) is None]
-    if missing:
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', *missing])
-    os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-    with open(cache_file, 'w') as f:
-        f.write('ok')
-
 from prettytable import PrettyTable
-from partition_scheme import PartitionScheme, CreatePartitionScheme
-from partitioning import FirstPartitioning, Partitioning
-from bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme
+try:
+    from .partition_scheme import PartitionScheme, CreatePartitionScheme
+    from .partitioning import FirstPartitioning, Partitioning
+    from .bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme
+except ImportError:
+    from partition_scheme import PartitionScheme, CreatePartitionScheme
+    from partitioning import FirstPartitioning, Partitioning
+    from bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme
 
 
 def main():

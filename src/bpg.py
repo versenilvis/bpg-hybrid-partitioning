@@ -2,7 +2,10 @@ from __future__ import annotations
 import networkx as nx
 import numpy as np
 from scipy.sparse import csr_array
-from partition_scheme import PartitionScheme
+try:
+    from .partition_scheme import PartitionScheme
+except ImportError:
+    from partition_scheme import PartitionScheme
 
 
 class PartitionScheme_BPG():

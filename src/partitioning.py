@@ -1,8 +1,12 @@
 from __future__ import annotations
 import copy
 import networkx as nx
-from partition_scheme import PartitionScheme
-from bpg import bpg_partition
+try:
+    from .partition_scheme import PartitionScheme
+    from .bpg import bpg_partition
+except ImportError:
+    from partition_scheme import PartitionScheme
+    from bpg import bpg_partition
 
 
 class FirstPartitioning(): # Algorithm 5
@@ -561,7 +565,6 @@ class Partitioning(): # Algorithm 2
 
         if len(G.partitions) == 1:
             if self.use_bpg:
-                from bpg import bpg_partition
                 G = bpg_partition(G, site_num=self.site_num)
             else:
                 G = FirstPartitioning(G, self.site_num).run()

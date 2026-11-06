@@ -22,7 +22,16 @@ test-mincut:
 test-partitioning:
     -@python -B test/test_partitioning.py
 
-# don dep cache python
+# dong goi wheel va source distribution
+build: clean
+    @python -m build
+
+# day package len pypi
+publish: build
+    @python -m twine upload dist/*
+
+# don dep cache python va file build
 clean:
+    @rm -rf build dist *.egg-info src/*.egg-info
     @find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
     @find . -type f -name "*.pyc" -delete 2>/dev/null || true

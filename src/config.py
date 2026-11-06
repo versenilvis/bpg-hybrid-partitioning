@@ -5,8 +5,12 @@ import os
 def load_env(env_path: str | None = None) -> None:
     # doc file .env neu ton tai va nap vao os.environ
     if env_path is None:
-        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        env_path = os.path.join(root_dir, '.env')
+        cwd_env = os.path.join(os.getcwd(), '.env')
+        if os.path.exists(cwd_env):
+            env_path = cwd_env
+        else:
+            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            env_path = os.path.join(root_dir, '.env')
 
     if not os.path.exists(env_path):
         return
@@ -69,4 +73,3 @@ BPG_MAX_ITER = get_int('BPG_MAX_ITER', 100)
 BPG_TOL = get_float('BPG_TOL', 1e-4)
 BPG_NUM_RESTARTS = get_int('BPG_NUM_RESTARTS', 3)
 BPG_STEP_SCALE = get_float('BPG_STEP_SCALE', 0.06)
-

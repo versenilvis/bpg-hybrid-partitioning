@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bpg-partitioning"
+version = "0.1.0"
+description = "BPG-Based Initial Partitioning for Hybrid Data Partitioning in NewSQL Databases"
+readme = {file = "README", content-type = "text/plain"}
+requires-python = ">=3.10"
+authors = [
+    {name = "verse91", email = "versedev.store@proton.me"}
+]
+keywords = ["newsql", "distributed-database", "partitioning", "bpg", "normalized-cut"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "Faker",
+    "networkx",
+    "numpy",
+    "prettytable",
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://github.com/versenilvis/bpg-hybrid-partitioning"
+Repository = "https://github.com/versenilvis/bpg-hybrid-partitioning.git"
+
+[project.scripts]
+bpg-partitioning = "bpg_partitioning.main:main"
+
+[tool.setuptools]
+packages = ["bpg_partitioning"]
+
+[tool.setuptools.package-dir]
+bpg_partitioning = "src"
