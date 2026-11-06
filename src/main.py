@@ -133,7 +133,7 @@ def main():
     print(matrix_table)
 
     # chạy thuật toán bpg
-    bpg = BregmanProximalGradient(W, partitions_num=2, step_size=1.0, iterations_num=50)
+    bpg = BregmanProximalGradient(W, partitions_num=2, step_size=1.0, iterations_num=50, seed=42)
     bpg_labels = bpg.run()
 
     # hiển thị ma trận phân bổ xác suất mềm x của bpg

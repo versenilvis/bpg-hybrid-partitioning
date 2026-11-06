@@ -73,15 +73,16 @@ class PartitionScheme_BPG():
 
 
 class BregmanProximalGradient(): # BPG
-    def __init__(self, W: csr_array, partitions_num: int, step_size: float, iterations_num: int):
+    def __init__(self, W: csr_array, partitions_num: int, step_size: float, iterations_num: int, seed: int | None = None):
         self.W = W
         self.partitions_num = partitions_num
         self.step_size = step_size
         self.iterations_num = iterations_num
+        self.seed = seed
         self.X: np.ndarray | None = None
     
     def run(self) -> np.ndarray:
-        rng = np.random.default_rng()
+        rng = np.random.default_rng() if self.seed is None else np.random.default_rng(self.seed)
         N = self.W.shape[0] # type: ignore
         K = self.partitions_num
         X = (1 / K) * np.ones((N, K)) + 0.1 * rng.random((N,K))
@@ -137,7 +138,7 @@ class BPG_PartitionScheme():
 def bpg_partition(partition_scheme: PartitionScheme, site_num: int = 2, step_size: float = 1.0, iterations_num: int = 50, seed: int = 42) -> PartitionScheme:
     bpg_prep = PartitionScheme_BPG(partition_scheme, use_coarsening=True)
     W = bpg_prep.run()
-    solver = BregmanProximalGradient(W=W, partitions_num=site_num, step_size=step_size, iterations_num=iterations_num)
+    solver = BregmanProximalGradient(W=W, partitions_num=site_num, step_size=step_size, iterations_num=iterations_num, seed=seed)
     labels = solver.run()
     bpg_mapper = BPG_PartitionScheme(partition_scheme.heat_graph, labels, coarse_to_nodes=bpg_prep.coarse_to_nodes)
     return bpg_mapper.run()
