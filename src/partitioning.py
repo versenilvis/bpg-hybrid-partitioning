@@ -192,9 +192,9 @@ class PartitioningUnbalancedGraph(): # Algorithm 3
 
         loads = self.getLoads(G)
         # Partition có tổng workload thấp nhất
-        underloadedPartition = min(loads, key=loads.__getitem__)
+        underloadedPartition = min(loads, key=lambda pid: (loads[pid], pid))
         # Partition có tổng workload cao nhất
-        overloadedPartition = max(loads, key=loads.__getitem__)
+        overloadedPartition = max(loads, key=lambda pid: (loads[pid], -pid))
         avgWorkload = sum(loads.values()) / len(G.partitions)
 
         n = ()
@@ -212,14 +212,14 @@ class PartitioningUnbalancedGraph(): # Algorithm 3
                 break
 
             loads = self.getLoads(G)
-            underloadedPartition = min(loads, key=loads.__getitem__)
-            overloadedPartition = max(loads, key=loads.__getitem__)
+            underloadedPartition = min(loads, key=lambda pid: (loads[pid], pid))
+            overloadedPartition = max(loads, key=lambda pid: (loads[pid], -pid))
             avgWorkload = sum(loads.values()) / len(G.partitions)
 
         loads = self.getLoads(G)
         # Key
-        underloadedPartition = min(loads, key=loads.__getitem__)
-        overloadedPartition = max(loads, key=loads.__getitem__)
+        underloadedPartition = min(loads, key=lambda pid: (loads[pid], pid))
+        overloadedPartition = max(loads, key=lambda pid: (loads[pid], -pid))
 
         if (loads[overloadedPartition] > (1 + self.workload_factor) * avgWorkload or loads[underloadedPartition] < (1-self.workload_factor) * avgWorkload):
             G = PartitioningUnbalancedGraph(G, self.site_num, self.workload_factor).run(recursion_depth=recursion_depth-1)
