@@ -105,7 +105,7 @@ Bộ điều phối phân mảnh thích ứng động:
 * `run(recursion_depth: int = 20) -> PartitionScheme`: Tự động kiểm tra độ lệch tải (gọi `PartitioningUnbalancedGraph`), kiểm tra tỷ lệ giao dịch phân tán (gọi `PartitioningMinimumCutGraph`), và khởi tạo phân mảnh (bằng `bpg_partition` nếu `use_bpg=True`, ngược lại dùng `FirstPartitioning`) khi hệ thống mới chỉ có 1 phân vùng; trả về `PartitionScheme` đã tối ưu
 
 #### `PartitioningUnbalancedGraph(partition_scheme: PartitionScheme, site_num: int, workload_factor: float)` (Algorithm 3)
-Thuật toán tái cân bằng khi có máy chủ vượt ngưỡng tải $(1 \pm \alpha) \times \text{avg\_load}$:
+Thuật toán tái cân bằng khi có máy chủ vượt ngưỡng tải `(1 ± workload_factor) * avg_load`:
 * `getLoads(partition_scheme: PartitionScheme) -> dict[int, float]`: Trả về từ điển `{partition_id: total_weight}`
 * `mostProeminentTuple(partition_scheme: PartitionScheme, overloadedPartition: int) -> int | None`: Trả về `node_id` có trọng số nhiệt lớn nhất và tổng trọng số cạnh kề nhỏ nhất trong phân vùng quá tải (hoặc `None` nếu phân vùng rỗng)
 * `relocateTuple(partition_scheme: PartitionScheme, proeminent_tuple: int, underloadPartition: int, overloadPartition: int) -> bool`: Chuyển đỉnh sang phân vùng nhẹ tải nếu không làm phân vùng đích vượt ngưỡng tải tối đa, trả về `True` nếu chuyển thành công và `False` nếu từ chối
