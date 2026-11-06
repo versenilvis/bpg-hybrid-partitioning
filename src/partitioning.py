@@ -257,10 +257,13 @@ class PartitioningMinimumCutGraph(): # Algorithm 4
         critical_edges = []
 
         for u, v, data in partition_scheme.heat_graph.edges(data=True):
+            weight = float(data["weight"])
+            if weight <= 0:
+                continue
             common_partitions = vertex_partitions[u] & vertex_partitions[v]
 
             if not common_partitions:
-                critical_edges.append((u, v, float(data["weight"])))
+                critical_edges.append((u, v, weight))
 
         return critical_edges
 
@@ -370,6 +373,7 @@ class PartitioningMinimumCutGraph(): # Algorithm 4
             Code sẽ lặp lại 1 chút cho dễ debug chứ giờ nhiều hàm quá r.
         """
 
+        current_cut = self.calculateMinimumCut(partition_scheme)
         minimal_cut = float('inf') # Cạnh nhỏ nhất sau khi di chuyển vertex.
         best_vertices = []
         heat_graph = partition_scheme.heat_graph
@@ -387,27 +391,29 @@ class PartitioningMinimumCutGraph(): # Algorithm 4
         """
         # Các đỉnh cách vertex đúng 1 cạnh
         one_hop = set(heat_graph.neighbors(vertex)) - {vertex}
-        one_hop_groups = [[vertex, neighbor] for neighbor in one_hop]
-        cut, vertices = self.updateMinCut(partition_scheme, one_hop_groups, origin_partition, target_partition)
-        if cut < minimal_cut:
-            minimal_cut = cut
-            best_vertices = vertices
+        if self.depth_search >= 1:
+            one_hop_groups = [[vertex, neighbor] for neighbor in one_hop]
+            cut, vertices = self.updateMinCut(partition_scheme, one_hop_groups, origin_partition, target_partition)
+            if cut < minimal_cut:
+                minimal_cut = cut
+                best_vertices = vertices
         """
         Tính min cho 2 hop - 3 đỉnh.
         """
-        # Các đỉnh cách vertex đúng 2 cạnh
-        two_hops = set()
-        for neighbor in one_hop:
-            for next_neighbor in heat_graph.neighbors(neighbor):
-                if next_neighbor != vertex and next_neighbor not in one_hop:
-                    two_hops.add((vertex, neighbor, next_neighbor))
-        # Chuyển các đỉnh trong phương án sang target_partition
-        cut, vertices = self.updateMinCut(partition_scheme, two_hops, origin_partition, target_partition)
-        if cut < minimal_cut:
-            minimal_cut = cut
-            best_vertices = vertices
+        if self.depth_search >= 2:
+            # Các đỉnh cách vertex đúng 2 cạnh
+            two_hops = set()
+            for neighbor in one_hop:
+                for next_neighbor in heat_graph.neighbors(neighbor):
+                    if next_neighbor != vertex and next_neighbor not in one_hop:
+                        two_hops.add((vertex, neighbor, next_neighbor))
+            # Chuyển các đỉnh trong phương án sang target_partition
+            cut, vertices = self.updateMinCut(partition_scheme, two_hops, origin_partition, target_partition)
+            if cut < minimal_cut:
+                minimal_cut = cut
+                best_vertices = vertices
         # Nếu ko có trường hợp nào hợp lệ thì trả về -1
-        if minimal_cut == float("inf"):
+        if minimal_cut == float("inf") or minimal_cut >= current_cut:
             return -1, []
         return minimal_cut, best_vertices
 
