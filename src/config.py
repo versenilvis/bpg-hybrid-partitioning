@@ -70,24 +70,3 @@ BPG_TOL = get_float('BPG_TOL', 1e-4)
 BPG_NUM_RESTARTS = get_int('BPG_NUM_RESTARTS', 3)
 BPG_STEP_SCALE = get_float('BPG_STEP_SCALE', 0.06)
 
-# benchmark configs
-BENCHMARK_SCALES_RAW = get_str('BENCHMARK_SCALES', '10:30:2:2,20:60:2:2,50:150:2:2,100:300:4:4,200:600:4:4')
-BENCHMARK_OUTPUT_PATH = get_str('BENCHMARK_OUTPUT_PATH', 'docs/benchmark_results.md')
-
-
-def get_benchmark_configs() -> list[dict]:
-    # phan tich chuoi cau hinh benchmark tu env
-    scales = []
-    for item in BENCHMARK_SCALES_RAW.split(','):
-        item = item.strip()
-        if not item:
-            continue
-        parts = item.split(':')
-        if len(parts) == 4:
-            scales.append({
-                'num_records': int(parts[0]),
-                'num_transactions': int(parts[1]),
-                'num_clusters': int(parts[2]),
-                'sites': int(parts[3])
-            })
-    return scales
