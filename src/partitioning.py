@@ -43,6 +43,8 @@ class FirstPartitioning(): # Algorithm 5
         return coarse_g, coarse_to_nodes, node_to_coarse
 
     def run(self) -> PartitionScheme:
+        if not isinstance(self.site_num, int) or isinstance(self.site_num, bool) or self.site_num <= 0:
+            raise ValueError('site_num phai la so nguyen duong')
         coarse_g, coarse_to_nodes, _ = self._coarsening_graph()
 
         partitions: dict[int, set[int]] = {p: set() for p in range(self.site_num)}
