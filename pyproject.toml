@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bpg-partitioning"
-version = "0.1.0"
+version = "0.1.1"
 description = "BPG-Based Initial Partitioning for Hybrid Data Partitioning in NewSQL Databases"
-readme = {file = "README", content-type = "text/plain"}
+readme = "README.md"
 requires-python = ">=3.10"
 authors = [
     {name = "verse91", email = "versedev.store@proton.me"}
