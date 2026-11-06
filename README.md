@@ -74,7 +74,7 @@ Hàm gọi nhanh toàn bộ chu trình phân mảnh bằng BPG (gom cụm cạnh
 
 #### `PartitionScheme_BPG(partition_scheme: PartitionScheme, use_coarsening: bool = True)`
 Chuyển đổi đồ thị nhiệt sang ma trận ái lực thưa:
-* `run() -> scipy.sparse.csr_array`: Gom các đỉnh nối bởi cạnh trọng số `0.0` (khi `use_coarsening=True`) và trả về ma trận kề đối xứng $W \in \mathbb{R}^{N \times N}$ dạng `csr_array`
+* `run() -> scipy.sparse.csr_array`: Gom các đỉnh nối bởi cạnh trọng số `0.0` (khi `use_coarsening=True`) và trả về ma trận kề đối xứng `W` kích thước `(N, N)` dạng `csr_array`
 * **Thuộc tính sau khi chạy**:
   * `W` (`csr_array`): Ma trận ái lực giữa các tuple
   * `coarse_to_nodes` (`dict[int, list[int]]`): Ánh xạ từ chỉ số cụm thu gọn sang danh sách các `node_id` gốc trên đồ thị nhiệt
