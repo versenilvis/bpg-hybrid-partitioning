@@ -13,8 +13,9 @@ class PartitionScheme():
 
 class CreatePartitionScheme():
     """dữ liệu giả, sau này sẽ chuyển thành hàm Database -> Partitioning Scheme"""
-    def __init__(self, num_records: int = 10, seed: int = 42):
+    def __init__(self, num_records: int = 5, num_clusters: int = 2, seed: int = 42):
         self.num_records = num_records
+        self.num_clusters = num_clusters
         self.seed = seed
         self.fake = Faker()
         Faker.seed(seed)
@@ -44,48 +45,88 @@ class CreatePartitionScheme():
     # ý nghĩa của bảng này là nó ghi lại xem những ai hay được truy cập cùng nhau trong các giao dịch.
     # Thuật toán của chúng ta sẽ nhìn vào bảng này để gom những người hay giao dịch chung về cùng một máy chủ,
     # nhằm triệt tiêu tối đa các giao dịch phân tán làm chậm hệ thống
-    def generate_mock_transactions(self, num_transactions: int = 10) -> list[dict]:
+    def generate_mock_transactions(self, num_transactions: int = 10, cross_tx_ratio: float = 0.1) -> list[dict]:
         if not self.data:
             self.generate_mock_data()
 
         self.transactions = []
-        half = max(1, self.num_records // 2)
-        group_1 = [r['id'] for r in self.data if r['id'] <= half]
-        group_2 = [r['id'] for r in self.data if r['id'] > half]
+        # giu nguyen logic cho mock demo 5 nguoi de khong lam thay doi ket qua cu
+        if self.num_records == 5 and num_transactions == 10 and self.num_clusters == 2:
+            half = max(1, self.num_records // 2)
+            group_1 = [r['id'] for r in self.data if r['id'] <= half]
+            group_2 = [r['id'] for r in self.data if r['id'] > half]
 
-        tx_id = 1
+            tx_id = 1
         # cluster 1 transactions
-        for _ in range(num_transactions // 2):
-            ops = []
-            attrs = ['name', 'email'] if random.random() < 0.6 else ['balance']
-            picked_ids = random.sample(group_1, min(2, len(group_1)))
-            for pid in picked_ids:
-                ops.append({'tuple_id': pid, 'attrs': attrs})
-            self.transactions.append({'tx_id': tx_id, 'ops': ops})
-            tx_id += 1
+            for _ in range(num_transactions // 2):
+                ops = []
+                attrs = ['name', 'email'] if random.random() < 0.6 else ['balance']
+                picked_ids = random.sample(group_1, min(2, len(group_1)))
+                for pid in picked_ids:
+                    ops.append({'tuple_id': pid, 'attrs': attrs})
+                self.transactions.append({'tx_id': tx_id, 'ops': ops})
+                tx_id += 1
 
         # cluster 2 transactions
-        for _ in range(max(1, num_transactions // 2 - 1)):
-            ops = []
-            attrs = ['name', 'email'] if random.random() < 0.6 else ['balance']
-            picked_ids = random.sample(group_2, min(2, len(group_2)))
-            for pid in picked_ids:
-                ops.append({'tuple_id': pid, 'attrs': attrs})
-            self.transactions.append({'tx_id': tx_id, 'ops': ops})
-            tx_id += 1
+            for _ in range(max(1, num_transactions // 2 - 1)):
+                ops = []
+                attrs = ['name', 'email'] if random.random() < 0.6 else ['balance']
+                picked_ids = random.sample(group_2, min(2, len(group_2)))
+                for pid in picked_ids:
+                    ops.append({'tuple_id': pid, 'attrs': attrs})
+                self.transactions.append({'tx_id': tx_id, 'ops': ops})
+                tx_id += 1
 
         # giả sử có 5 người, chia ra 2 nhóm
         # đoạn code dưới lấy ngẫu nhiên 1 người nhóm 1 và 1 người nhóm 2 nhét chung vào 1 giao dịch, tạo ra giao dịch bắc cầu
         # 2 nhóm này đại diện cho 2 node trong hệ thống phân tán
         # nếu như giao dịch chỉ xảy ra trong 1 nhóm mà (tức là trong 1 node) thì bài toán có gì để xử lý nữa đâu
-        if group_1 and group_2:
-            self.transactions.append({
-                'tx_id': tx_id,
-                'ops': [
-                    {'tuple_id': random.choice(group_1), 'attrs': ['name', 'email']},
-                    {'tuple_id': random.choice(group_2), 'attrs': ['name', 'email']}
+            if group_1 and group_2:
+                self.transactions.append({
+                    'tx_id': tx_id,
+                    'ops': [
+                        {'tuple_id': random.choice(group_1), 'attrs': ['name', 'email']},
+                        {'tuple_id': random.choice(group_2), 'attrs': ['name', 'email']}
+                    ]
+                })
+
+            return self.transactions
+
+        # sinh giao dich phan bo cum theo quy mo tuy y
+        k = max(1, self.num_clusters)
+        clusters: list[list[int]] = [[] for _ in range(k)]
+        for r in self.data:
+            c_idx = (r['id'] - 1) % k
+            clusters[c_idx].append(r['id'])
+
+        tx_id = 1
+        num_cross = max(1, int(num_transactions * cross_tx_ratio)) if k > 1 else 0
+        num_intra = max(0, num_transactions - num_cross)
+
+        for _ in range(num_intra):
+            c = random.randint(0, k - 1)
+            c_records = clusters[c]
+            if len(c_records) < 2:
+                continue
+            ops = []
+            attrs = ['name', 'email'] if random.random() < 0.6 else ['balance']
+            picked = random.sample(c_records, 2)
+            for pid in picked:
+                ops.append({'tuple_id': pid, 'attrs': attrs})
+            self.transactions.append({'tx_id': tx_id, 'ops': ops})
+            tx_id += 1
+
+        for _ in range(num_cross):
+            c1, c2 = random.sample(range(k), 2)
+            if clusters[c1] and clusters[c2]:
+                attrs1 = ['name', 'email'] if random.random() < 0.6 else ['balance']
+                attrs2 = ['name', 'email'] if random.random() < 0.6 else ['balance']
+                ops = [
+                    {'tuple_id': random.choice(clusters[c1]), 'attrs': attrs1},
+                    {'tuple_id': random.choice(clusters[c2]), 'attrs': attrs2}
                 ]
-            })
+                self.transactions.append({'tx_id': tx_id, 'ops': ops})
+                tx_id += 1
 
         return self.transactions
 
@@ -169,7 +210,10 @@ class CreatePartitionScheme():
         self.heat_graph = heat_graph
         return heat_graph
 
-    def run(self) -> PartitionScheme:
+    def run(self, num_transactions: int | None = None, cross_tx_ratio: float = 0.1) -> PartitionScheme:
+        if num_transactions is not None:
+            self.generate_mock_data()
+            self.generate_mock_transactions(num_transactions, cross_tx_ratio)
         graph = self.build_heat_graph()
         initial_partitions = {0: set(graph.nodes())}
         return PartitionScheme(graph, initial_partitions)
