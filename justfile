@@ -2,6 +2,10 @@
 run:
     @python -B src/main.py
 
+# chay bo thuc nghiem doi dau quy mo lon
+bench:
+    @python -B test/benchmark.py
+
 # chay toan bo suite 109 unit tests
 test:
     -@python -B test/full_test.py
