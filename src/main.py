@@ -4,15 +4,17 @@ try:
     from .partition_scheme import PartitionScheme, CreatePartitionScheme
     from .partitioning import FirstPartitioning, Partitioning
     from .bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme
+    from . import config
 except ImportError:
     from partition_scheme import PartitionScheme, CreatePartitionScheme
     from partitioning import FirstPartitioning, Partitioning
     from bpg import PartitionScheme_BPG, BregmanProximalGradient, BPG_PartitionScheme
+    import config
 
 
 def main():
-    creator = CreatePartitionScheme(num_records=5, seed=42)
-    partition_scheme = creator.run()
+    creator = CreatePartitionScheme(num_records=config.DEFAULT_NUM_RECORDS, seed=config.DEFAULT_SEED)
+    partition_scheme = creator.run(cross_tx_ratio=config.DEFAULT_CROSS_TX_RATIO)
 
     # hiển thị bảng cơ sở dữ liệu giả lập
     data_table = PrettyTable()
@@ -61,7 +63,7 @@ def main():
         print(f"Partition {p}: {sorted(list(nodes))}")
 
     # chạy thuật toán khởi tạo cơ sở algorithm 5
-    first_partitioning = FirstPartitioning(partition_scheme, site_num=2)
+    first_partitioning = FirstPartitioning(partition_scheme, site_num=config.DEFAULT_SITE_NUM)
     result_scheme = first_partitioning.run()
 
     print('\n=== PARTITION SCHEME (AFTER FIRST PARTITIONING - ALGORITHM 5) ===')
@@ -116,7 +118,7 @@ def main():
     print(matrix_table)
 
     # chạy thuật toán bpg
-    bpg = BregmanProximalGradient(W, partitions_num=2, step_size=1.0, iterations_num=50, seed=42)
+    bpg = BregmanProximalGradient(W, partitions_num=config.DEFAULT_SITE_NUM, step_size=1.0, iterations_num=config.BPG_MAX_ITER, seed=config.DEFAULT_SEED)
     bpg_labels = bpg.run()
 
     # hiển thị ma trận phân bổ xác suất mềm x của bpg
@@ -185,9 +187,9 @@ def main():
 
     # kiểm thử thuật toán điều phối động (algorithm 2)
     print('\n=== DYNAMIC PARTITIONING (ALGORITHM 2) ===')
-    initial_scheme = creator.run()
-    dyn_partitioning = Partitioning(initial_scheme, site_num=2, workload_factor=0.2, distributed_percentage=0.02, use_bpg=True)
-    dyn_result = dyn_partitioning.run()
+    initial_scheme = creator.run(cross_tx_ratio=config.DEFAULT_CROSS_TX_RATIO)
+    dyn_partitioning = Partitioning(initial_scheme, site_num=config.DEFAULT_SITE_NUM, workload_factor=config.ALGO2_WORKLOAD_FACTOR, distributed_percentage=config.ALGO2_DISTRIBUTED_PERCENTAGE, use_bpg=config.ALGO2_USE_BPG)
+    dyn_result = dyn_partitioning.run(recursion_depth=config.ALGO2_RECURSION_DEPTH)
     print(f"Total partitions: {len(dyn_result.partitions)}")
     for p, nodes in sorted(dyn_result.partitions.items()):
         load = sum(graph.nodes[n]['weight'] for n in nodes)

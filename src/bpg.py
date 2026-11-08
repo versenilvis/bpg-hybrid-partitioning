@@ -4,8 +4,10 @@ import numpy as np
 from scipy.sparse import csr_array
 try:
     from .partition_scheme import PartitionScheme
+    from . import config
 except ImportError:
     from partition_scheme import PartitionScheme
+    import config
 
 
 class PartitionScheme_BPG():
@@ -138,10 +140,38 @@ class BPG_PartitionScheme():
         return PartitionScheme(self.heat_graph, partitions)
 
 
-def bpg_partition(partition_scheme: PartitionScheme, site_num: int = 2, step_size: float = 1.0, iterations_num: int = 50, seed: int = 42) -> PartitionScheme:
+def bpg_partition(partition_scheme: PartitionScheme, site_num: int = 2, step_size: float | None = None, iterations_num: int | None = None, num_restarts: int | None = None, seed: int | None = 42) -> PartitionScheme:
+    if iterations_num is None:
+        iterations_num = config.BPG_MAX_ITER
+    if num_restarts is None:
+        num_restarts = config.BPG_NUM_RESTARTS
+
     bpg_prep = PartitionScheme_BPG(partition_scheme, use_coarsening=True)
     W = bpg_prep.run()
-    solver = BregmanProximalGradient(W=W, partitions_num=site_num, step_size=step_size, iterations_num=iterations_num, seed=seed)
-    labels = solver.run()
-    bpg_mapper = BPG_PartitionScheme(partition_scheme.heat_graph, labels, coarse_to_nodes=bpg_prep.coarse_to_nodes)
+
+    # tu dong dieu chinh step_size theo quy mo tong trong so do thi
+    if step_size is None:
+        vol_scale = float(W.sum()) / max(1, site_num)
+        step_size = max(1.0, config.BPG_STEP_SCALE * vol_scale)
+
+    best_obj = float('inf')
+    best_labels = None
+
+    for r in range(max(1, num_restarts)):
+        r_seed = None if seed is None else seed + r
+        solver = BregmanProximalGradient(W=W, partitions_num=site_num, step_size=step_size, iterations_num=iterations_num, seed=r_seed)
+        labels = solver.run()
+        if solver.X is not None:
+            denom = solver.X.T @ W.sum(axis=1)
+            denom = np.maximum(denom, 1e-12)
+            obj = sum(x @ W @ (1 - x) / d for x, d in zip(solver.X.T, denom))
+            if obj < best_obj:
+                best_obj = obj
+                best_labels = labels
+        else:
+            best_labels = labels
+
+    chosen_labels = best_labels if best_labels is not None else labels
+    bpg_mapper = BPG_PartitionScheme(partition_scheme.heat_graph, chosen_labels, coarse_to_nodes=bpg_prep.coarse_to_nodes)
     return bpg_mapper.run()
+
